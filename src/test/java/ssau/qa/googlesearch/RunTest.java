@@ -10,6 +10,8 @@ import org.junit.Test;
 import org.openqa.selenium.*;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.interactions.Actions;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.WebDriverWait;
 
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -33,7 +35,7 @@ public class RunTest {
     @BeforeClass
     public static void run() {
         //указываем путь к хромдрайверу, он отдельно качается
-        System.setProperty("webdriver.chrome.driver", "/Users/anka_47/Downloads/chromedriver_2");
+        System.setProperty("webdriver.chrome.driver", "/Users/anka/Downloads/chromedriver_2");
         //инициализируем драйвер
         driver = new ChromeDriver();
         //разворачиваем окно максимально
@@ -54,7 +56,7 @@ public class RunTest {
     @Test @Ignore
     public void search() {
         System.out.println("вводим текст в строку поиска");
-        driver.findElement(By.id("lst-ib")).sendKeys("netcracker");
+        driver.findElement(By.name("q")).sendKeys("netcracker");
         System.out.println("ждём нужного нам результата");
         wait("//div[text()='netcracker']", 2);
         System.out.println("выбираем его");
@@ -107,36 +109,38 @@ public class RunTest {
     }
 
     @Test
-    public void searchWithXLSX() {
+    public void searchWithXLSX() throws InterruptedException {
         System.out.println("вытаскиваем значения из файлика");
         getValuesFromXLSX();
         System.out.println("вводим текст в строку поиска");
-        driver.findElement(By.id("lst-ib")).sendKeys(map.get("search"));
+        driver.findElement(By.name("q")).sendKeys(map.get("search"));
         System.out.println("ждём нужного нам результата");
-        wait("//div[text()='netcracker']", 2);
+        wait("//*[text()='netcracker']", 2);
         System.out.println("выбираем его");
-        driver.findElement(By.xpath("//div[text()='netcracker']")).click();
+        driver.findElement(By.xpath("//*[text()='netcracker']")).click();
         System.out.println("ждем, когда появятся результаты поиска");
         wait("//cite[text()='https://www.netcracker.com/']", 2);
         System.out.println("переходим на сайт крекера по ссылке из результата поиска");
-        driver.findElement(By.xpath("//cite[text()='https://www.netcracker.com/']/ancestor::div[@data-hveid]//h3/a")).click();
+        driver.findElement(By.xpath("//cite[text()='https://www.netcracker.com/']/../../h3")).click();
         System.out.println("переключаемся на вторую вкладку");
         switchTab(1);
+        sleep(5000);
         System.out.println("ждем, когда откроется сайт крекера, точнее, когда появится нужная нам ссылка");
-        wait("//div[@class='container main-nav-container']//a[@href='//www.netcracker.com/careers/']", 5);
+        (new WebDriverWait(driver, 10))
+                .until(ExpectedConditions.presenceOfElementLocated(By.xpath("//a[@href='//www.netcracker.com/careers/']")));
         System.out.println("кликаем на ссылка курьера");
         driver.findElement(By.xpath("//body/div[2]/section/nav/div[1]/div[1]/ul/li[2]/a")).click();
         System.out.println("ждем, когда отобразится логотип крекера");
         wait("//div[@class='navbar-header']", 2);
         System.out.println("скроллим до ссылки на Россию");
-        WebElement linkRussia = driver.findElement(By.xpath("//a[@href='open-positions/?region=Russia']"));
+        WebElement link = driver.findElement(By.xpath("//a[@href='internships.html']"));
         Actions actions = new Actions(driver);
-        actions.moveToElement(linkRussia);
+        actions.moveToElement(link);
         actions.perform();
         System.out.println("ждём, когда проскроллиться");
         wait("12321", 1);
         System.out.println("кликаем на линку");
-        linkRussia.click();
+        link.click();
         wait("//button[@data-id='location']", 10);
         System.out.println("открываем дропдаун менюшку Location");
         driver.findElement(By.xpath("//button[@data-id='location']")).click();
